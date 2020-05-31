@@ -11,6 +11,8 @@ driver.get('https://jobs.dou.ua/')
 time.sleep(2)
 
 categories = driver.find_elements_by_xpath("//a[@class='cat-link']")
+links_to_categories = [category.get_attribute('href') for category in categories]
+category_names = [category.text for category in categories]
 
 count_scrapped = 0
 
@@ -19,10 +21,10 @@ with open('jobs.csv', mode='w') as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     writer.writeheader()
 
-    for i in range(len(categories)):
-        category_name = categories[i].text
+    for i in range(len(links_to_categories)):
+        category_name = category_names[i]
         print(category_name)
-        categories[i].click()
+        driver.get(links_to_categories[i])
         time.sleep(1)
 
         more_btn = driver.find_element_by_xpath("//div[@class='more-btn']/a")
@@ -35,13 +37,18 @@ with open('jobs.csv', mode='w') as csv_file:
 
         vacancies = driver.find_elements_by_xpath("//div[@class='vacancy']/div[@class='title']/a[@class='vt']")
 
-        for j in range(len(vacancies)):
-            title = vacancies[j].text
-            vacancies[j].click()
-            time.sleep(1)
+        print(f"For {category_name} detected {len(vacancies)} vacancies.")
+
+        links_to_vacancies = [vacancy.get_attribute('href') for vacancy in vacancies]
+        vacancy_titles = [vacancy.text for vacancy in vacancies]
+
+        for j in range(len(links_to_vacancies)):
+            title = vacancy_titles[j]
+            driver.get(links_to_vacancies[j])
+            time.sleep(2)
+
             company = driver.find_elements_by_xpath(
                 "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]")[0].text
-
             location = driver.find_element_by_xpath("//div[@class='b-vacancy']//span[@class='place']").text
             date = driver.find_element_by_xpath("//div[@class='b-vacancy']//div[@class='date']").text
             url = driver.current_url
@@ -54,13 +61,8 @@ with open('jobs.csv', mode='w') as csv_file:
             if count_scrapped % 10 == 0:
                 print(count_scrapped)
 
-            driver.back()
-            time.sleep(0.5)
-            vacancies = driver.find_elements_by_xpath("//div[@class='vacancy']/div[@class='title']/a[@class='vt']")
-
-        driver.back()
-        time.sleep(1)
-        categories = driver.find_elements_by_xpath("//a[@class='cat-link']")
+        print(f"Scrapped category {category_name}")
+        time.sleep(3)
 
 driver.close()
 
