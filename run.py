@@ -4,10 +4,11 @@ import csv
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
 
+from config import DRIVER_PATH
 
-def main():
-    DRIVER_PATH = '/home/dmitrij/PycharmProjects/dou_scrap_selenium/chromedriver'
-    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+
+def main(driver_path):
+    driver = webdriver.Chrome(executable_path=driver_path)
 
     driver.get('https://jobs.dou.ua/')
     time.sleep(2)
@@ -78,7 +79,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(DRIVER_PATH)
 
 
 
