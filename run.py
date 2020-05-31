@@ -2,7 +2,7 @@ import time
 import csv
 
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
 
 DRIVER_PATH = '/home/dmitrij/PycharmProjects/dou_scrap_selenium/chromedriver'
 driver = webdriver.Chrome(executable_path=DRIVER_PATH)
@@ -16,7 +16,7 @@ category_names = [category.text for category in categories]
 
 count_scrapped = 0
 
-with open('jobs.csv', mode='w') as csv_file:
+with open('jobs2.csv', mode='w') as csv_file:
     fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     writer.writeheader()
@@ -45,12 +45,20 @@ with open('jobs.csv', mode='w') as csv_file:
         for j in range(len(links_to_vacancies)):
             title = vacancy_titles[j]
             driver.get(links_to_vacancies[j])
-            time.sleep(2)
+            time.sleep(5)
 
-            company = driver.find_elements_by_xpath(
-                "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]")[0].text
-            location = driver.find_element_by_xpath("//div[@class='b-vacancy']//span[@class='place']").text
-            date = driver.find_element_by_xpath("//div[@class='b-vacancy']//div[@class='date']").text
+            company = None
+            location = None
+            date = None
+
+            try:
+                company = driver.find_elements_by_xpath(
+                    "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]")[0].text
+                location = driver.find_element_by_xpath("//div[@class='b-vacancy']//span[@class='place']").text
+                date = driver.find_element_by_xpath("//div[@class='b-vacancy']//div[@class='date']").text
+            except NoSuchElementException:
+                pass
+            
             url = driver.current_url
 
             writer.writerow({'category': category_name, 'title': title, 'company': company,
@@ -62,7 +70,7 @@ with open('jobs.csv', mode='w') as csv_file:
                 print(count_scrapped)
 
         print(f"Scrapped category {category_name}")
-        time.sleep(3)
+        time.sleep(10)
 
 driver.close()
 
