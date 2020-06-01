@@ -4,6 +4,10 @@ import csv
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
 
+from pymongo import MongoClient
+from typing import List
+from datetime import datetime
+
 from config import DRIVER_PATH
 
 
@@ -16,6 +20,8 @@ def main(driver_path):
     categories = driver.find_elements_by_xpath("//a[@class='cat-link']")
     links_to_categories = [category.get_attribute('href') for category in categories]
     category_names = [category.text for category in categories]
+
+    insert_into_mongodb(links=links_to_categories, links_info=category_names)
 
     count_scrapped = 0
 
@@ -83,6 +89,15 @@ def write_to_csv(is_headline=False, category=None, title=None, company=None, loc
         else:
             writer.writerow({'category': category, 'title': title, 'company': company,
                              'location': location, 'date': date, 'url': url})
+
+
+def insert_into_mongodb(links: List[str], links_info: List[str]):
+    client = MongoClient('localhost', 27017)
+    db = client['dou-scrapping-db']
+    collection = db['links-to-process']
+    links_to_insert = [{'link': item[0], 'description': item[1], 'status': 'Todo', 'created_at': datetime.utcnow()}
+                       for item in zip(links, links_info)]
+    collection.insert_many(links_to_insert)
 
 
 if __name__ == '__main__':
