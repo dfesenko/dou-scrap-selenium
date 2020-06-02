@@ -11,7 +11,7 @@ from datetime import datetime
 from config import DRIVER_PATH
 
 
-def main(driver_path):
+def main(driver_path, destination):
     driver = webdriver.Chrome(executable_path=driver_path)
 
     driver.get('https://jobs.dou.ua/')
@@ -25,7 +25,8 @@ def main(driver_path):
 
     count_scrapped = 0
 
-    write_to_csv(is_headline=True)
+    if destination == 'csv':
+        write_to_csv(is_headline=True)
 
     for i in range(len(links_to_categories)):
         category = category_names[i]
@@ -48,7 +49,7 @@ def main(driver_path):
         links_to_vacancies = [vacancy.get_attribute('href') for vacancy in vacancies]
         vacancy_titles = [vacancy.text for vacancy in vacancies]
 
-        insert_plan_into_mongodb(links=links_to_vacancies, links_info=vacancy_titles, is_categories=True)
+        insert_plan_into_mongodb(links=links_to_vacancies, links_info=vacancy_titles, is_vacancies=True)
 
         for j in range(len(links_to_vacancies)):
             title = vacancy_titles[j]
@@ -69,7 +70,10 @@ def main(driver_path):
 
             url = driver.current_url
 
-            write_to_csv(category=category, title=title, company=company, location=location, date=date, url=url)
+            if destination == 'csv':
+                write_to_csv(category=category, title=title, company=company, location=location, date=date, url=url)
+            elif destination == 'mongo':
+                write_to_mongo(category=category, title=title, company=company, location=location, date=date, url=url)
 
             count_scrapped += 1
 
@@ -91,6 +95,16 @@ def write_to_csv(is_headline=False, category=None, title=None, company=None, loc
         else:
             writer.writerow({'category': category, 'title': title, 'company': company,
                              'location': location, 'date': date, 'url': url})
+
+
+def write_to_mongo(category, title, company, location, date, url):
+    client = MongoClient('localhost', 27017)
+    db = client['dou-scrapping-db']
+
+    collection = db['dou-jobs-data']
+    doc_to_insert = {'category': category, 'title': title, 'company': company,
+                     'location': location, 'date': date, 'url': url}
+    collection.insert_one(doc_to_insert)
 
 
 def insert_plan_into_mongodb(links: List[str], links_info: List[str], is_categories=None, is_vacancies=None):
@@ -118,4 +132,5 @@ def insert_plan_into_mongodb(links: List[str], links_info: List[str], is_categor
 
 
 if __name__ == '__main__':
-    main(DRIVER_PATH)
+    DESTINATION = 'mongo'
+    main(DRIVER_PATH, DESTINATION)
