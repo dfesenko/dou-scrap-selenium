@@ -12,6 +12,10 @@ from config import DRIVER_PATH
 
 
 def main(driver_path, destination):
+    """
+    @param driver_path: string that represent the path to the web driver used for automation
+    @param destination: either 'csv' or 'mongo' - the place where to store the scrapped data
+    """
     driver = webdriver.Chrome(executable_path=driver_path)
 
     driver.get('https://jobs.dou.ua/')
@@ -87,6 +91,17 @@ def main(driver_path, destination):
 
 
 def write_to_csv(is_headline=False, category=None, title=None, company=None, location=None, date=None, url=None):
+    """
+    Writes the scrapped data to CSV file
+    @param is_headline: If the CSV file is new and empty - write the first row with the names of columns.
+                        In this case all other parameters shouldn't be passed to the function.
+    @param category: scrapped category of the vacancy
+    @param title: scrapped title of the vacancy
+    @param company: scrapped company name
+    @param location: scrapped location of the job
+    @param date: scrapped date of vacancy posting
+    @param url: url to the vacancy
+    """
     fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
     with open('jobs2.csv', mode='a+') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -98,6 +113,15 @@ def write_to_csv(is_headline=False, category=None, title=None, company=None, loc
 
 
 def write_to_mongo(category, title, company, location, date, url):
+    """
+    Writes the scrapped data to MongoDB database collection.
+    @param category: scrapped category of the vacancy
+    @param title: scrapped title of the vacancy
+    @param company: scrapped company name
+    @param location: scrapped location of the job
+    @param date: scrapped date of vacancy posting
+    @param url: url to the vacancy
+    """
     client = MongoClient('localhost', 27017)
     db = client['dou-scrapping-db']
 
