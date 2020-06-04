@@ -45,7 +45,7 @@ def scrap_vacancies_links(driver, storage_type, link_to_category, category, iter
     links_to_vacancies = [vacancy.get_attribute('href') for vacancy in vacancies]
     vacancy_titles = [vacancy.text for vacancy in vacancies]
 
-    store_temp_data(temp_storage_type=storage_type,
+    store_temp_data(temp_storage_type=storage_type, category_name=category,
                     links=links_to_vacancies, links_info=vacancy_titles, iteration=iteration, is_vacancies=True)
 
     return links_to_vacancies, vacancy_titles

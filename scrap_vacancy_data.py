@@ -1,9 +1,9 @@
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 
-from utils import store_temp_data, load_temp_data, write_to_csv, write_to_mongo
+from utils import load_temp_data, write_to_csv, write_to_mongo
 from config import DRIVER_PATH
 
 
@@ -11,11 +11,14 @@ def main():
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
     destination = 'csv'
     temp_storage_type = 'csv'
-    links_to_vacancies, vacancy_titles = load_temp_data(storage_type=temp_storage_type, data_type='vacancies')
+    links_to_vacancies, vacancy_titles, categories = load_temp_data(storage_type=temp_storage_type,
+                                                                    data_type='vacancies')
+    if destination == 'csv':
+        write_to_csv(is_headline=True)
 
     for i in range(len(links_to_vacancies)):
         scrap_vacancy_data(driver=driver, destination=destination,
-                           vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category)
+                           vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=categories[i])
 
 
 def scrap_vacancy_data(driver, destination, vacancy_title, vacancy_link, category):
