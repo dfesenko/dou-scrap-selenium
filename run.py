@@ -1,10 +1,12 @@
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 
 from config import DRIVER_PATH
-from utils import store_temp_data, write_to_csv, write_to_mongo
+from utils import store_temp_data, write_to_csv, write_to_mongo, load_temp_data
+from scrap_categories_links import scrap_categories_links
+from scrap_vacancies_links import scrap_vacancies_links
 
 
 def main(driver_path, destination, temporary_storage_type):
@@ -16,15 +18,7 @@ def main(driver_path, destination, temporary_storage_type):
     """
     driver = webdriver.Chrome(executable_path=driver_path)
 
-    driver.get('https://jobs.dou.ua/')
-    time.sleep(2)
-
-    categories = driver.find_elements_by_xpath("//a[@class='cat-link']")
-    links_to_categories = [category.get_attribute('href') for category in categories]
-    category_names = [category.text for category in categories]
-
-    store_temp_data(temp_storage_type=temporary_storage_type,
-                    links=links_to_categories, links_info=category_names, iteration=0, is_categories=True)
+    links_to_categories, category_names = scrap_categories_links(driver=driver, storage_type=temporary_storage_type)
 
     count_scrapped = 0
 
@@ -33,28 +27,9 @@ def main(driver_path, destination, temporary_storage_type):
 
     for i in range(len(links_to_categories)):
         category = category_names[i]
-        print(category)
-        driver.get(links_to_categories[i])
-        time.sleep(1)
-
-        more_btn = driver.find_element_by_xpath("//div[@class='more-btn']/a")
-        while True:
-            try:
-                more_btn.click()
-                time.sleep(2)
-            except ElementNotInteractableException:
-                break
-
-        vacancies = driver.find_elements_by_xpath("//div[@class='vacancy']/div[@class='title']/a[@class='vt']")
-
-        print(f"For {category} detected {len(vacancies)} vacancies.")
-
-        links_to_vacancies = [vacancy.get_attribute('href') for vacancy in vacancies]
-        vacancy_titles = [vacancy.text for vacancy in vacancies]
-
-        store_temp_data(temp_storage_type=temporary_storage_type,
-                        links=links_to_vacancies, links_info=vacancy_titles, iteration=i, is_vacancies=True)
-
+        links_to_vacancies, vacancy_titles = scrap_vacancies_links(driver=driver, storage_type=temporary_storage_type,
+                                                                   link_to_category=links_to_categories[i],
+                                                                   category=category, iteration=i)
         for j in range(len(links_to_vacancies)):
             title = vacancy_titles[j]
             driver.get(links_to_vacancies[j])
