@@ -1,12 +1,12 @@
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
 
 from config import DRIVER_PATH
-from utils import store_temp_data, write_to_csv, write_to_mongo, load_temp_data
+from utils import write_to_csv
 from scrap_categories_links import scrap_categories_links
 from scrap_vacancies_links import scrap_vacancies_links
+from scrap_vacancy_data import scrap_vacancy_data
 
 
 def main(driver_path, destination, temporary_storage_type):
@@ -19,7 +19,6 @@ def main(driver_path, destination, temporary_storage_type):
     driver = webdriver.Chrome(executable_path=driver_path)
 
     links_to_categories, category_names = scrap_categories_links(driver=driver, storage_type=temporary_storage_type)
-
     count_scrapped = 0
 
     if destination == 'csv':
@@ -31,29 +30,8 @@ def main(driver_path, destination, temporary_storage_type):
                                                                    link_to_category=links_to_categories[i],
                                                                    category=category, iteration=i)
         for j in range(len(links_to_vacancies)):
-            title = vacancy_titles[j]
-            driver.get(links_to_vacancies[j])
-            time.sleep(3)
-
-            company = None
-            location = None
-            date = None
-
-            try:
-                company = driver.find_elements_by_xpath(
-                    "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]")[0].text
-                location = driver.find_element_by_xpath("//div[@class='b-vacancy']//span[@class='place']").text
-                date = driver.find_element_by_xpath("//div[@class='b-vacancy']//div[@class='date']").text
-            except NoSuchElementException:
-                pass
-
-            url = driver.current_url
-
-            if destination == 'csv':
-                write_to_csv(category=category, title=title, company=company, location=location, date=date, url=url)
-            elif destination == 'mongo':
-                write_to_mongo(category=category, title=title, company=company, location=location, date=date, url=url)
-
+            scrap_vacancy_data(driver=driver, destination=destination, vacancy_title=vacancy_titles[j],
+                               vacancy_link=links_to_vacancies[j], category=category)
             count_scrapped += 1
 
             if count_scrapped % 20 == 0:

@@ -120,18 +120,35 @@ def store_temp_data(temp_storage_type, links, links_info, iteration, is_categori
         insert_plan_into_mongodb(links=links, links_info=links_info, is_vacancies=True)
 
 
-def load_temp_data(storage_type):
-    links_to_categories = []
-    category_names = []
+def load_temp_data(storage_type, data_type):
+    if data_type == 'categories':
+        links_to_categories = []
+        category_names = []
 
-    if storage_type == 'csv':
-        with open('category-links-to-process.csv', "r") as csv_file:
-            reader = csv.DictReader(csv_file)
-            for row in reader:
-                links_to_categories.append(row['link'])
-                category_names.append(row['category_name'])
+        if storage_type == 'csv':
+            with open('category-links-to-process.csv', "r") as csv_file:
+                reader = csv.DictReader(csv_file)
+                for row in reader:
+                    links_to_categories.append(row['link'])
+                    category_names.append(row['category_name'])
 
-    elif storage_type == 'mongo':
-        pass
+        elif storage_type == 'mongo':
+            pass
 
-    return links_to_categories, category_names
+        return links_to_categories, category_names
+
+    elif data_type == 'vacancies':
+        links_to_vacancies = []
+        vacancy_titles = []
+
+        if storage_type == 'csv':
+            with open('category-links-to-process.csv', "r") as csv_file:
+                reader = csv.DictReader(csv_file)
+                for row in reader:
+                    links_to_vacancies.append(row['link'])
+                    vacancy_titles.append(row['vacancy_name'])
+
+        elif storage_type == 'mongo':
+            pass
+
+        return links_to_vacancies, vacancy_titles

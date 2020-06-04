@@ -10,7 +10,7 @@ from config import DRIVER_PATH
 def main():
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
     storage_type = 'csv'
-    links_to_categories, category_names = load_temp_data(storage_type=storage_type)
+    links_to_categories, category_names = load_temp_data(storage_type=storage_type, data_type='categories')
 
     for i in range(len(links_to_categories)):
         links_to_vacancies, vacancy_titles = scrap_vacancies_links(driver=driver, storage_type=storage_type,
