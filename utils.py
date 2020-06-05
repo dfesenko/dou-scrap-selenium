@@ -85,7 +85,8 @@ def insert_plan_into_csv(links: List[str], links_info: List[str], iteration,
             writer.writerows(links_to_insert)
 
 
-def insert_plan_into_mongodb(links: List[str], links_info: List[str], is_categories=None, is_vacancies=None):
+def insert_plan_into_mongodb(links: List[str], links_info: List[str],
+                             is_categories=None, is_vacancies=None, category_name=None):
     """
     Inserts items that should be scrapped in the future into the MongoDB database.
 
@@ -93,20 +94,29 @@ def insert_plan_into_mongodb(links: List[str], links_info: List[str], is_categor
     @param links_info: description of an item (name of category or vacancy title, for example)
     @param is_categories: flag for categories
     @param is_vacancies: flag for vacancies
+    @param category_name: the name of category (if is_vacancies = True)
     """
     if is_categories and is_vacancies:
         raise Exception("insert_plan_into_mongodb() function can insert just 1 type of content at a time")
     elif not is_categories and not is_vacancies:
         raise Exception("insert_plan_into_mongodb() function expects a flag of what is the kind of "
                         "the content to insert")
+    elif is_vacancies and not category_name:
+        raise Exception("The name of category the vacancies belongs to should be passed")
 
     client = MongoClient('localhost', 27017)
     db = client['dou-scrapping-db']
 
     kind = 'category' if is_categories else 'vacancy'
     collection = db[f'{kind}-links-to-process']
-    links_to_insert = [{'link': item[0], f'{kind}_name': item[1], 'is_scrapped': False,
-                        'created_at': datetime.utcnow()} for item in zip(links, links_info)]
+
+    if is_vacancies:
+        links_to_insert = [{'link': item[0], 'vacancy_title': item[1], 'is_scrapped': False, 'category': category_name,
+                            'created_at': datetime.utcnow()} for item in zip(links, links_info)]
+    elif is_categories:
+        links_to_insert = [{'link': item[0], 'category_name': item[1], 'is_scrapped': False,
+                            'created_at': datetime.utcnow()} for item in zip(links, links_info)]
+
     collection.insert_many(links_to_insert)
 
 
