@@ -5,7 +5,7 @@ from typing import List
 from datetime import datetime
 
 
-def write_to_csv(is_headline=False, category=None, title=None, company=None, location=None, date=None, url=None):
+def write_result_to_csv(is_headline=False, category=None, title=None, company=None, location=None, date=None, url=None):
     """
     Writes the scrapped data to CSV file
     @param is_headline: If the CSV file is new and empty - write the first row with the names of columns.
@@ -27,7 +27,7 @@ def write_to_csv(is_headline=False, category=None, title=None, company=None, loc
                              'location': location, 'date': date, 'url': url})
 
 
-def write_to_mongo(category, title, company, location, date, url):
+def write_result_to_mongo(category, title, company, location, date, url):
     """
     Writes the scrapped data to MongoDB database collection.
     @param category: scrapped category of the vacancy

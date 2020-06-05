@@ -3,7 +3,7 @@ import time
 from selenium import webdriver
 
 from config import DRIVER_PATH
-from utils import write_to_csv
+from utils import write_result_to_csv
 from scrap_categories_links import scrap_categories_links
 from scrap_vacancies_links import scrap_vacancies_links
 from scrap_vacancy_data import scrap_vacancy_data
@@ -22,7 +22,7 @@ def main(driver_path, destination, temporary_storage_type):
     count_scrapped = 0
 
     if destination == 'csv':
-        write_to_csv(is_headline=True)
+        write_result_to_csv(is_headline=True)
 
     for i in range(len(links_to_categories)):
         category = category_names[i]
