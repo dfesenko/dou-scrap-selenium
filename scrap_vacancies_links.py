@@ -7,9 +7,8 @@ from utils import store_temp_data, load_temp_data
 from config import DRIVER_PATH
 
 
-def main():
+def main(storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-    storage_type = 'csv'
     links_to_categories, category_names = load_temp_data(storage_type=storage_type, data_type='categories')
 
     for i in range(len(links_to_categories)):
@@ -52,4 +51,5 @@ def scrap_vacancies_links(driver, storage_type, link_to_category, category, iter
 
 
 if __name__ == '__main__':
-    main()
+    TEMP_STORAGE = 'mongo'
+    main(TEMP_STORAGE)

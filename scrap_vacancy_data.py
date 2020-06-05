@@ -7,10 +7,8 @@ from utils import load_temp_data, write_result_to_csv, write_result_to_mongo
 from config import DRIVER_PATH
 
 
-def main():
+def main(destination, temp_storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-    destination = 'csv'
-    temp_storage_type = 'csv'
     links_to_vacancies, vacancy_titles, categories = load_temp_data(storage_type=temp_storage_type,
                                                                     data_type='vacancies')
     if destination == 'csv':
@@ -48,4 +46,6 @@ def scrap_vacancy_data(driver, destination, vacancy_title, vacancy_link, categor
 
 
 if __name__ == '__main__':
-    main()
+    DESTINATION = 'mongo'
+    TEMP_STORAGE = 'mongo'
+    main(destination=DESTINATION, temp_storage_type=TEMP_STORAGE)

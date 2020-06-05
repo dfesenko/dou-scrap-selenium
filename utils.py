@@ -142,7 +142,7 @@ def store_temp_data(temp_storage_type, links, links_info, iteration,
         insert_plan_into_mongodb(links=links, links_info=links_info, is_categories=True)
 
     elif temp_storage_type == 'mongo' and is_vacancies:
-        insert_plan_into_mongodb(links=links, links_info=links_info, is_vacancies=True)
+        insert_plan_into_mongodb(links=links, links_info=links_info, is_vacancies=True, category_name=category_name)
 
 
 def load_temp_data(storage_type, data_type):
@@ -158,7 +158,13 @@ def load_temp_data(storage_type, data_type):
                     category_names.append(row['category_name'])
 
         elif storage_type == 'mongo':
-            pass
+            client = MongoClient('localhost', 27017)
+            db = client['dou-scrapping-db']
+            collection = db['category-links-to-process']
+
+            for item in collection.find():
+                links_to_categories.append(item['link'])
+                category_names.append(item['category_name'])
 
         return links_to_categories, category_names
 
@@ -176,6 +182,13 @@ def load_temp_data(storage_type, data_type):
                     categories.append(row['category'])
 
         elif storage_type == 'mongo':
-            pass
+            client = MongoClient('localhost', 27017)
+            db = client['dou-scrapping-db']
+            collection = db['vacancy-links-to-process']
+
+            for item in collection.find():
+                links_to_vacancies.append(item['link'])
+                vacancy_titles.append(item['vacancy_title'])
+                categories.append(item['category'])
 
         return links_to_vacancies, vacancy_titles, categories

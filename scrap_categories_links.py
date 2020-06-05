@@ -5,9 +5,8 @@ from selenium import webdriver
 from config import DRIVER_PATH
 
 
-def main():
+def main(storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-    storage_type = 'csv'
     scrap_categories_links(driver=driver, storage_type=storage_type)
 
 
@@ -28,4 +27,5 @@ def scrap_categories_links(driver, storage_type):
 
 
 if __name__ == '__main__':
-    main()
+    TEMP_STORAGE = 'mongo'
+    main(TEMP_STORAGE)
