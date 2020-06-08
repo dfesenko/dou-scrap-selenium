@@ -3,7 +3,7 @@ import time
 from selenium import webdriver
 
 from config import DRIVER_PATH
-from utils import write_result_to_csv
+from utils import write_result_to_csv, update_scrap_status
 from scrap_categories_links import scrap_categories_links
 from scrap_vacancies_links import scrap_vacancies_links
 from scrap_vacancy_data import scrap_vacancy_data
@@ -32,6 +32,9 @@ def main(driver_path, destination, temporary_storage_type):
         for j in range(len(links_to_vacancies)):
             scrap_vacancy_data(driver=driver, destination=destination, vacancy_title=vacancy_titles[j],
                                vacancy_link=links_to_vacancies[j], category=category)
+
+            update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
+                                storage_type=temporary_storage_type)
             count_scrapped += 1
 
             if count_scrapped % 20 == 0:

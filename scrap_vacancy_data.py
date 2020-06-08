@@ -3,7 +3,7 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
-from utils import load_temp_data, write_result_to_csv, write_result_to_mongo
+from utils import load_temp_data, write_result_to_csv, write_result_to_mongo, update_scrap_status
 from config import DRIVER_PATH
 
 
@@ -17,6 +17,9 @@ def main(destination, temp_storage_type):
     for i in range(len(links_to_vacancies)):
         scrap_vacancy_data(driver=driver, destination=destination,
                            vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=categories[i])
+
+        update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
+                            storage_type=temp_storage_type)
 
 
 def scrap_vacancy_data(driver, destination, vacancy_title, vacancy_link, category):
