@@ -11,12 +11,13 @@ from config import DRIVER_PATH
 def main(destination, temp_storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
     categories_to_parse = load_categories_to_parse()
+
+    if categories_to_parse and destination == 'csv':
+        write_result_to_csv(is_headline=True)
+
     for category in categories_to_parse:
         print(f"Start scrapping category: {category}")
         links_to_vacancies, vacancy_titles = load_category_vacancies(category=category)
-
-        if destination == 'csv':
-            write_result_to_csv(is_headline=True)
 
         for i in range(len(links_to_vacancies)):
             scrap_vacancy_data(driver=driver, destination=destination,
