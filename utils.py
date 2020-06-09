@@ -203,3 +203,36 @@ def update_scrap_status(vacancy_link, vacancy_title, storage_type):
         query = {'link': vacancy_link, 'vacancy_title': vacancy_title}
 
         collection.update_one(query, {"$set": {"is_scrapped": True}})
+
+
+def load_categories_to_parse():
+    client = MongoClient('localhost', 27017)
+    db = client['dou-scrapping-db']
+    collection = db['vacancy-links-to-process']
+    return collection.distinct("category", {"is_scrapped": False})
+
+
+def load_category_vacancies(category):
+    client = MongoClient('localhost', 27017)
+    db = client['dou-scrapping-db']
+    collection = db['vacancy-links-to-process']
+
+    links_to_vacancies = []
+    vacancy_titles = []
+    categories = []
+
+    for item in collection.find({"category": category}):
+        links_to_vacancies.append(item['link'])
+        vacancy_titles.append(item['vacancy_title'])
+        categories.append(item['category'])
+
+    return links_to_vacancies, vacancy_titles, categories
+
+
+def update_category_scrap_status(category):
+    client = MongoClient('localhost', 27017)
+    db = client['dou-scrapping-db']
+    collection = db['category-links-to-process']
+    query = {"category_name": category}
+
+    collection.update_one(query, {"$set": {"is_scrapped": True, "datetime_scrapped": datetime.utcnow()}})

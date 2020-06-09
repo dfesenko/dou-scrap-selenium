@@ -3,23 +3,29 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
-from utils import load_temp_data, write_result_to_csv, write_result_to_mongo, update_scrap_status
+from utils import write_result_to_csv, write_result_to_mongo, update_scrap_status, load_categories_to_parse, \
+    load_category_vacancies, update_category_scrap_status
 from config import DRIVER_PATH
 
 
 def main(destination, temp_storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-    links_to_vacancies, vacancy_titles, categories = load_temp_data(storage_type=temp_storage_type,
-                                                                    data_type='vacancies')
-    if destination == 'csv':
-        write_result_to_csv(is_headline=True)
+    categories_to_parse = load_categories_to_parse()
+    for category in categories_to_parse:
+        print(f"Start scrapping category: {category}")
+        links_to_vacancies, vacancy_titles, categories = load_category_vacancies(category=category)
 
-    for i in range(len(links_to_vacancies)):
-        scrap_vacancy_data(driver=driver, destination=destination,
-                           vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=categories[i])
+        if destination == 'csv':
+            write_result_to_csv(is_headline=True)
 
-        update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
-                            storage_type=temp_storage_type)
+        for i in range(len(links_to_vacancies)):
+            scrap_vacancy_data(driver=driver, destination=destination,
+                               vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=categories[i])
+
+            update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
+                                storage_type=temp_storage_type)
+
+            update_category_scrap_status(category=category)
 
 
 def scrap_vacancy_data(driver, destination, vacancy_title, vacancy_link, category):
