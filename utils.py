@@ -193,14 +193,12 @@ def load_category_vacancies(category):
 
     links_to_vacancies = []
     vacancy_titles = []
-    categories = []
 
     for item in collection.find({"category": category, "is_scrapped": False}):
         links_to_vacancies.append(item['link'])
         vacancy_titles.append(item['vacancy_title'])
-        categories.append(item['category'])
 
-    return links_to_vacancies, vacancy_titles, categories
+    return links_to_vacancies, vacancy_titles
 
 
 def update_category_scrap_status(category):

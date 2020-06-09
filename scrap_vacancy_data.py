@@ -13,14 +13,14 @@ def main(destination, temp_storage_type):
     categories_to_parse = load_categories_to_parse()
     for category in categories_to_parse:
         print(f"Start scrapping category: {category}")
-        links_to_vacancies, vacancy_titles, categories = load_category_vacancies(category=category)
+        links_to_vacancies, vacancy_titles = load_category_vacancies(category=category)
 
         if destination == 'csv':
             write_result_to_csv(is_headline=True)
 
         for i in range(len(links_to_vacancies)):
             scrap_vacancy_data(driver=driver, destination=destination,
-                               vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=categories[i])
+                               vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=category)
 
             update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
                                 storage_type=temp_storage_type)
