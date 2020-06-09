@@ -145,53 +145,27 @@ def store_temp_data(temp_storage_type, links, links_info, iteration,
         insert_plan_into_mongodb(links=links, links_info=links_info, is_vacancies=True, category_name=category_name)
 
 
-def load_temp_data(storage_type, data_type):
-    if data_type == 'categories':
-        links_to_categories = []
-        category_names = []
+def load_category_links(storage_type):
+    links_to_categories = []
+    category_names = []
 
-        if storage_type == 'csv':
-            with open('category-links-to-process.csv', "r") as csv_file:
-                reader = csv.DictReader(csv_file)
-                for row in reader:
-                    links_to_categories.append(row['link'])
-                    category_names.append(row['category_name'])
+    if storage_type == 'csv':
+        with open('category-links-to-process.csv', "r") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                links_to_categories.append(row['link'])
+                category_names.append(row['category_name'])
 
-        elif storage_type == 'mongo':
-            client = MongoClient('localhost', 27017)
-            db = client['dou-scrapping-db']
-            collection = db['category-links-to-process']
+    elif storage_type == 'mongo':
+        client = MongoClient('localhost', 27017)
+        db = client['dou-scrapping-db']
+        collection = db['category-links-to-process']
 
-            for item in collection.find():
-                links_to_categories.append(item['link'])
-                category_names.append(item['category_name'])
+        for item in collection.find({"is_scrapped": False}):
+            links_to_categories.append(item['link'])
+            category_names.append(item['category_name'])
 
-        return links_to_categories, category_names
-
-    elif data_type == 'vacancies':
-        links_to_vacancies = []
-        vacancy_titles = []
-        categories = []
-
-        if storage_type == 'csv':
-            with open('vacancy-links-to-process.csv', "r") as csv_file:
-                reader = csv.DictReader(csv_file)
-                for row in reader:
-                    links_to_vacancies.append(row['link'])
-                    vacancy_titles.append(row['vacancy_title'])
-                    categories.append(row['category'])
-
-        elif storage_type == 'mongo':
-            client = MongoClient('localhost', 27017)
-            db = client['dou-scrapping-db']
-            collection = db['vacancy-links-to-process']
-
-            for item in collection.find():
-                links_to_vacancies.append(item['link'])
-                vacancy_titles.append(item['vacancy_title'])
-                categories.append(item['category'])
-
-        return links_to_vacancies, vacancy_titles, categories
+    return links_to_categories, category_names
 
 
 def update_scrap_status(vacancy_link, vacancy_title, storage_type):

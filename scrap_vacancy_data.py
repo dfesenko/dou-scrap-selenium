@@ -25,7 +25,7 @@ def main(destination, temp_storage_type):
             update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
                                 storage_type=temp_storage_type)
 
-            update_category_scrap_status(category=category)
+        update_category_scrap_status(category=category)
 
 
 def scrap_vacancy_data(driver, destination, vacancy_title, vacancy_link, category):

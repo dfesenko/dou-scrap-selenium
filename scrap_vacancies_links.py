@@ -3,13 +3,13 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
 
-from utils import store_temp_data, load_temp_data
+from utils import store_temp_data, load_category_links
 from config import DRIVER_PATH
 
 
 def main(storage_type):
     driver = webdriver.Chrome(executable_path=DRIVER_PATH)
-    links_to_categories, category_names = load_temp_data(storage_type=storage_type, data_type='categories')
+    links_to_categories, category_names = load_category_links(storage_type=storage_type)
 
     for i in range(len(links_to_categories)):
         links_to_vacancies, vacancy_titles = scrap_vacancies_links(driver=driver, storage_type=storage_type,
