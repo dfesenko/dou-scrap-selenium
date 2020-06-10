@@ -45,13 +45,13 @@ def scrap_vacancy_data(driver, destination_adapter, vacancy_title, vacancy_link,
     xpaths = {'company': "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]",
               'location': "//div[@class='b-vacancy']//span[@class='place']",
               'date': "//div[@class='b-vacancy']//div[@class='date']"}
-    results = {'company': None, 'location': None, 'date': None}
+    results = {}
 
     for target_name in xpaths:
         try:
             results[target_name] = driver.find_element_by_xpath(xpaths[target_name]).text
         except NoSuchElementException:
-            pass
+            results[target_name] = None
 
     url = driver.current_url
 
