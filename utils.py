@@ -5,45 +5,51 @@ from typing import List
 from datetime import datetime
 
 
-def write_result_to_csv(is_headline=False, category=None, title=None, company=None, location=None, date=None, url=None):
-    """
-    Writes the scrapped data to CSV file
-    @param is_headline: If the CSV file is new and empty - write the first row with the names of columns.
-                        In this case all other parameters shouldn't be passed to the function.
-    @param category: scrapped category of the vacancy
-    @param title: scrapped title of the vacancy
-    @param company: scrapped company name
-    @param location: scrapped location of the job
-    @param date: scrapped date of vacancy posting
-    @param url: url to the vacancy
-    """
-    fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
-    with open('jobs2.csv', mode='a+') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        if is_headline:
+class AdapterMongo:
+    def __init__(self, host, port, db_name):
+        self.client = MongoClient(host, port)
+        self.db = self.client[db_name]
+
+    def flush_result(self, category, title, company, location, date, url):
+        """
+        Writes the scrapped data to MongoDB database collection.
+        @param category: scrapped category of the vacancy
+        @param title: scrapped title of the vacancy
+        @param company: scrapped company name
+        @param location: scrapped location of the job
+        @param date: scrapped date of vacancy posting
+        @param url: url of the vacancy
+        """
+        collection = self.db['dou-jobs-data']
+        doc_to_insert = {'category': category, 'title': title, 'company': company,
+                         'location': location, 'date': date, 'url': url}
+        collection.insert_one(doc_to_insert)
+
+
+class AdapterCSV:
+    def __init__(self, filename):
+        self.fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
+        self.filename = filename
+
+    def create_csv_headline(self):
+        with open(self.filename, mode='a+') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
             writer.writeheader()
-        else:
+
+    def flush_result(self, category, title, company, location, date, url):
+        """
+        Writes the scrapped data to CSV file.
+        @param category: scrapped category of the vacancy
+        @param title: scrapped title of the vacancy
+        @param company: scrapped company name
+        @param location: scrapped location of the job
+        @param date: scrapped date of vacancy posting
+        @param url: url of the vacancy
+        """
+        with open(self.filename, mode='a+') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
             writer.writerow({'category': category, 'title': title, 'company': company,
-                             'location': location, 'date': date, 'url': url})
-
-
-def write_result_to_mongo(category, title, company, location, date, url):
-    """
-    Writes the scrapped data to MongoDB database collection.
-    @param category: scrapped category of the vacancy
-    @param title: scrapped title of the vacancy
-    @param company: scrapped company name
-    @param location: scrapped location of the job
-    @param date: scrapped date of vacancy posting
-    @param url: url to the vacancy
-    """
-    client = MongoClient('localhost', 27017)
-    db = client['dou-scrapping-db']
-
-    collection = db['dou-jobs-data']
-    doc_to_insert = {'category': category, 'title': title, 'company': company,
-                     'location': location, 'date': date, 'url': url}
-    collection.insert_one(doc_to_insert)
+                            'location': location, 'date': date, 'url': url})
 
 
 def insert_plan_into_csv(links: List[str], links_info: List[str], iteration,
@@ -177,6 +183,7 @@ def update_scrap_status(vacancy_link, vacancy_title, storage_type):
         query = {'link': vacancy_link, 'vacancy_title': vacancy_title}
 
         collection.update_one(query, {"$set": {"is_scrapped": True}})
+        print("vacancy status set to scrapped = True")
 
 
 def load_categories_to_parse():
@@ -208,3 +215,4 @@ def update_category_scrap_status(category):
     query = {"category_name": category}
 
     collection.update_one(query, {"$set": {"is_scrapped": True, "datetime_scrapped": datetime.utcnow()}})
+    print("category status set to scrapped = True")
