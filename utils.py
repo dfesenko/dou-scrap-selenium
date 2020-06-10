@@ -10,7 +10,7 @@ class AdapterMongo:
         self.client = MongoClient(host, port)
         self.db = self.client[db_name]
 
-    def flush_result(self, category, title, company, location, date, url):
+    def flush_result(self, category, title, url, company=None, location=None, date=None):
         """
         Writes the scrapped data to MongoDB database collection.
         @param category: scrapped category of the vacancy
@@ -36,7 +36,7 @@ class AdapterCSV:
             writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
             writer.writeheader()
 
-    def flush_result(self, category, title, company, location, date, url):
+    def flush_result(self, category, title, url, company=None, location=None, date=None):
         """
         Writes the scrapped data to CSV file.
         @param category: scrapped category of the vacancy

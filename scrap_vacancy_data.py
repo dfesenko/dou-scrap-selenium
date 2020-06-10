@@ -45,7 +45,7 @@ def scrap_vacancy_data(driver, destination_adapter, vacancy_title, vacancy_link,
     xpaths = {'company': "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]",
               'location': "//div[@class='b-vacancy']//span[@class='place']",
               'date': "//div[@class='b-vacancy']//div[@class='date']"}
-    results = {}
+    results = {'company': None, 'location': None, 'date': None}
 
     for target_name in xpaths:
         try:
