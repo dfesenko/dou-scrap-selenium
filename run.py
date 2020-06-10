@@ -3,7 +3,7 @@ import time
 from selenium import webdriver
 
 from config import DRIVER_PATH
-from utils import write_result_to_csv, update_scrap_status, update_category_scrap_status
+from utils import update_scrap_status, update_category_scrap_status, AdapterCSV, AdapterMongo
 from scrap_categories_links import scrap_categories_links
 from scrap_vacancies_links import scrap_vacancies_links
 from scrap_vacancy_data import scrap_vacancy_data
@@ -18,11 +18,16 @@ def main(driver_path, destination, temporary_storage_type):
     """
     driver = webdriver.Chrome(executable_path=driver_path)
 
+    if destination == 'mongo':
+        destination_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
+    else:
+        destination_adapter = AdapterCSV('jobs2.csv')
+
     links_to_categories, category_names = scrap_categories_links(driver=driver, storage_type=temporary_storage_type)
     count_scrapped = 0
 
-    if destination == 'csv':
-        write_result_to_csv(is_headline=True)
+    if links_to_categories and destination == 'csv':
+        destination_adapter.create_csv_headline()
 
     for i in range(len(links_to_categories)):
         category = category_names[i]
@@ -30,11 +35,11 @@ def main(driver_path, destination, temporary_storage_type):
                                                                    link_to_category=links_to_categories[i],
                                                                    category=category, iteration=i)
         for j in range(len(links_to_vacancies)):
-            scrap_vacancy_data(driver=driver, destination=destination, vacancy_title=vacancy_titles[j],
+            scrap_vacancy_data(driver=driver, destination_adapter=destination_adapter, vacancy_title=vacancy_titles[j],
                                vacancy_link=links_to_vacancies[j], category=category)
 
             update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
-                                storage_type=temporary_storage_type)
+                                storage_type=temporary_storage_type, category=category)
 
             update_category_scrap_status(category=category)
 
