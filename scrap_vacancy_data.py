@@ -31,7 +31,7 @@ def main(destination, temp_storage_type):
             scrap_vacancy_data(driver=driver, destination_adapter=destination_adapter,
                                vacancy_title=vacancy_titles[i], vacancy_link=links_to_vacancies[i], category=category)
 
-            update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i],
+            update_scrap_status(vacancy_link=links_to_vacancies[i], vacancy_title=vacancy_titles[i], category=category,
                                 storage_type=temp_storage_type)
             print(i)
 

@@ -174,13 +174,13 @@ def load_category_links(storage_type):
     return links_to_categories, category_names
 
 
-def update_scrap_status(vacancy_link, vacancy_title, storage_type):
+def update_scrap_status(vacancy_link, vacancy_title, category, storage_type):
     if storage_type == 'mongo':
         client = MongoClient('localhost', 27017)
         db = client['dou-scrapping-db']
         collection = db['vacancy-links-to-process']
 
-        query = {'link': vacancy_link, 'vacancy_title': vacancy_title}
+        query = {'link': vacancy_link, 'vacancy_title': vacancy_title, 'category': category}
 
         collection.update_one(query, {"$set": {"is_scrapped": True}})
         print("vacancy status set to scrapped = True")
