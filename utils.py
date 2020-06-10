@@ -1,4 +1,5 @@
 import csv
+import os.path
 
 from pymongo import MongoClient
 from typing import List
@@ -32,9 +33,10 @@ class AdapterCSV:
         self.filename = filename
 
     def create_csv_headline(self):
-        with open(self.filename, mode='a+') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
-            writer.writeheader()
+        if not os.path.isfile(self.filename):
+            with open(self.filename, mode='a+') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
+                writer.writeheader()
 
     def flush_result(self, category, title, url, company=None, location=None, date=None):
         """
