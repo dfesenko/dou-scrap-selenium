@@ -1,7 +1,8 @@
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
+from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException, \
+    StaleElementReferenceException
 
 from utils import store_temp_data, load_category_links
 from config import DRIVER_PATH
@@ -24,18 +25,15 @@ def scrap_vacancies_links(driver, storage_type, link_to_category, category, iter
     driver.get(link_to_category)
     time.sleep(1)
 
-    try:
-        more_btn = driver.find_element_by_xpath("//div[@class='more-btn']/a")
-
-        while True:
-            try:
-                more_btn.click()
-                time.sleep(1)
-            except ElementNotInteractableException:
-                break
-
-    except NoSuchElementException:
-        pass
+    while True:
+        try:
+            more_btn = driver.find_element_by_xpath("//div[@class='more-btn']/a")
+            more_btn.click()
+            time.sleep(1)
+        except (NoSuchElementException, ElementNotInteractableException):
+            break
+        except StaleElementReferenceException:
+            pass
 
     vacancies = driver.find_elements_by_xpath("//div[@class='vacancy']/div[@class='title']/a[@class='vt']")
 
