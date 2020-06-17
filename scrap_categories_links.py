@@ -31,5 +31,5 @@ def scrap_categories_links(driver, storage_type):
 
 
 if __name__ == '__main__':
-    TEMP_STORAGE = 'mongo'
+    TEMP_STORAGE = 'csv'
     main(TEMP_STORAGE)

@@ -55,5 +55,5 @@ def scrap_vacancies_links(driver, storage_adapter, link_to_category, category):
 
 
 if __name__ == '__main__':
-    TEMP_STORAGE = 'mongo'
+    TEMP_STORAGE = 'csv'
     main(TEMP_STORAGE)

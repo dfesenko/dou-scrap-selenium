@@ -1,6 +1,8 @@
 import csv
-import os.path
+import os
+import shutil
 
+from tempfile import NamedTemporaryFile
 from pymongo import MongoClient
 from typing import List
 from datetime import datetime
@@ -75,7 +77,7 @@ class AdapterMongo:
 
     def temp_store_category_links(self, links: List[str], categories_names: List[str]):
         """
-        Inserts items that should be scrapped in the future into the MongoDB database.
+        Inserts category links that should be scrapped in the future into the MongoDB database.
 
         @param links: links to categories that should be scrapped
         @param categories_names: names of categories
@@ -87,7 +89,7 @@ class AdapterMongo:
 
     def temp_store_vacancy_links(self, links: List[str], vacancy_titles: List[str], category_name: str):
         """
-        Inserts items that should be scrapped in the future into the MongoDB database.
+        Inserts vacancy links that should be scrapped in the future into the MongoDB database.
 
         @param links: links to vacancies that should be scrapped
         @param vacancy_titles: vacancies titles
@@ -101,13 +103,18 @@ class AdapterMongo:
 
 class AdapterCSV:
     def __init__(self, filename=None):
-        self.fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
-        self.filename = filename
+        self.result_fieldnames = ['category', 'title', 'company', 'location', 'date', 'url']
+        self.temp_category_fields = ['link', 'category_name', 'is_scrapped', 'created_at', 'scrapped_at']
+        self.temp_vacancy_fields = ['link', 'vacancy_title', 'is_scrapped', 'category', 'created_at', 'scrapped_at']
 
-    def create_csv_headline(self):
-        if not os.path.isfile(self.filename):
-            with open(self.filename, mode='a+') as csv_file:
-                writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
+        self.result_filename = filename
+        self.temp_category_filename = 'category-links-to-process.csv'
+        self.temp_vacancy_filename = 'vacancy-links-to-process.csv'
+
+    def create_csv_headline(self, filename, fieldnames):
+        if not os.path.isfile(filename):
+            with open(filename, mode='a+') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writeheader()
 
     def flush_result(self, category, title, url, company=None, location=None, date=None):
@@ -120,173 +127,122 @@ class AdapterCSV:
         @param date: scrapped date of vacancy posting
         @param url: url of the vacancy
         """
-        with open(self.filename, mode='a+') as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=self.fieldnames)
+        self.create_csv_headline(self.result_filename, self.result_fieldnames)
+
+        with open(self.result_filename, mode='a+') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.result_fieldnames)
             writer.writerow({'category': category, 'title': title, 'company': company,
                             'location': location, 'date': date, 'url': url})
 
+    def temp_store_category_links(self, links: List[str], categories_names: List[str]):
+        """
+        Inserts category links that should be scrapped in the future into the CSV file.
 
-def insert_plan_into_csv(links: List[str], links_info: List[str], iteration,
-                         is_categories=None, is_vacancies=None, category_name=None):
-    """
-    Inserts items that should be scrapped in the future to the CSV file.
+        @param links: links to categories that should be scrapped
+        @param categories_names: names of categories
+        """
+        self.create_csv_headline(self.temp_category_filename, self.temp_category_fields)
 
-    @param links: links to items that should be scrapped
-    @param links_info: description of an item (name of category or vacancy title, for example)
-    @param iteration: the num of time the function is called (0, 1, 2, 3, ..., N)
-    @param is_categories: flag for categories
-    @param is_vacancies: flag for vacancies
-    @param category_name: the name of category (if is_vacancies = True)
-    """
-    if is_categories and is_vacancies:
-        raise Exception("insert_plan_into_csv() function can insert just 1 type of content at a time")
-    elif not is_categories and not is_vacancies:
-        raise Exception("insert_plan_into_csv() function expects a flag of what is the kind of the content to insert")
-    elif is_vacancies and not category_name:
-        raise Exception("The name of category the vacancies belongs to should be passed")
-
-    kind = 'category' if is_categories else 'vacancy'
-
-    if is_vacancies:
-        fieldnames = ['category', 'vacancy_title', 'is_scrapped', 'created_at', 'link']
-        links_to_insert = [{'link': item[0], 'vacancy_title': item[1], 'is_scrapped': False, 'category': category_name,
-                            'created_at': datetime.utcnow()} for item in zip(links, links_info)]
-    elif is_categories:
-        fieldnames = ['category_name', 'is_scrapped', 'created_at', 'link']
         links_to_insert = [{'link': item[0], 'category_name': item[1], 'is_scrapped': False,
-                            'created_at': datetime.utcnow()} for item in zip(links, links_info)]
+                            'created_at': datetime.utcnow()} for item in zip(links, categories_names)]
 
-    with open(f'{kind}-links-to-process.csv', mode='a+') as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        if iteration == 0:
-            writer.writeheader()
-            writer.writerows(links_to_insert)
-        else:
+        with open(self.temp_category_filename, mode='a+') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.temp_category_fields)
             writer.writerows(links_to_insert)
 
+    def temp_store_vacancy_links(self, links: List[str], vacancy_titles: List[str], category_name: str):
+        """
+        Inserts vacancy links that should be scrapped in the future into the CSV file.
 
-# def insert_plan_into_mongodb(links: List[str], links_info: List[str],
-#                              is_categories=None, is_vacancies=None, category_name=None):
-#     """
-#     Inserts items that should be scrapped in the future into the MongoDB database.
-#
-#     @param links: links to items that should be scrapped
-#     @param links_info: description of an item (name of category or vacancy title, for example)
-#     @param is_categories: flag for categories
-#     @param is_vacancies: flag for vacancies
-#     @param category_name: the name of category (if is_vacancies = True)
-#     """
-#     if is_categories and is_vacancies:
-#         raise Exception("insert_plan_into_mongodb() function can insert just 1 type of content at a time")
-#     elif not is_categories and not is_vacancies:
-#         raise Exception("insert_plan_into_mongodb() function expects a flag of what is the kind of "
-#                         "the content to insert")
-#     elif is_vacancies and not category_name:
-#         raise Exception("The name of category the vacancies belongs to should be passed")
-#
-#     client = MongoClient('localhost', 27017)
-#     db = client['dou-scrapping-db']
-#
-#     kind = 'category' if is_categories else 'vacancy'
-#     collection = db[f'{kind}-links-to-process']
-#
-#     if is_vacancies:
-#         links_to_insert = [{'link': item[0], 'vacancy_title': item[1], 'is_scrapped': False, 'category': category_name,
-#                             'created_at': datetime.utcnow()} for item in zip(links, links_info)]
-#     elif is_categories:
-#         links_to_insert = [{'link': item[0], 'category_name': item[1], 'is_scrapped': False,
-#                             'created_at': datetime.utcnow()} for item in zip(links, links_info)]
-#
-#     collection.insert_many(links_to_insert)
+        @param links: links to vacancies that should be scrapped
+        @param vacancy_titles: vacancies titles
+        @param category_name: the name of category to which belongs given butch of vacancies
+        """
+        self.create_csv_headline(self.temp_vacancy_filename, self.temp_vacancy_fields)
 
+        links_to_insert = [{'link': item[0], 'vacancy_title': item[1], 'is_scrapped': False, 'category': category_name,
+                            'created_at': datetime.utcnow()} for item in zip(links, vacancy_titles)]
 
-# def store_temp_data(temp_storage_type, links, links_info, iteration,
-#                     is_categories=None, is_vacancies=None, category_name=None):
-#     """
-#     Decides which storage platform to choose (csv file or MongoDB) and whether it is category or vacancy data
-#     """
-#     if is_categories and is_vacancies:
-#         raise Exception("store_temp_data() function can process just 1 type of content at a time")
-#
-#     if is_vacancies and not category_name:
-#         raise Exception("Specify the name of the category")
-#
-#     if temp_storage_type == 'csv' and is_categories:
-#         insert_plan_into_csv(links=links, links_info=links_info, iteration=0, is_categories=True)
-#
-#     elif temp_storage_type == 'csv' and is_vacancies:
-#         insert_plan_into_csv(links=links, links_info=links_info, iteration=iteration, is_vacancies=True,
-#                              category_name=category_name)
-#
-#     elif temp_storage_type == 'mongo' and is_categories:
-#         insert_plan_into_mongodb(links=links, links_info=links_info, is_categories=True)
-#
-#     elif temp_storage_type == 'mongo' and is_vacancies:
-#         insert_plan_into_mongodb(links=links, links_info=links_info, is_vacancies=True, category_name=category_name)
+        with open(self.temp_vacancy_filename, mode='a+') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.temp_vacancy_fields)
+            writer.writerows(links_to_insert)
 
+    def load_category_links(self):
+        """
+        Needed for further collection of links to vacancies
+        """
+        links_to_categories = []
+        category_names = []
 
-# def load_category_links(storage_type):
-#     links_to_categories = []
-#     category_names = []
-#
-#     if storage_type == 'csv':
-#         with open('category-links-to-process.csv', "r") as csv_file:
-#             reader = csv.DictReader(csv_file)
-#             for row in reader:
-#                 links_to_categories.append(row['link'])
-#                 category_names.append(row['category_name'])
-#
-#     elif storage_type == 'mongo':
-#         client = MongoClient('localhost', 27017)
-#         db = client['dou-scrapping-db']
-#         collection = db['category-links-to-process']
-#
-#         for item in collection.find({"is_scrapped": False}):
-#             links_to_categories.append(item['link'])
-#             category_names.append(item['category_name'])
-#
-#     return links_to_categories, category_names
-#
-#
-# def update_scrap_status(vacancy_link, vacancy_title, category, storage_type):
-#     if storage_type == 'mongo':
-#         client = MongoClient('localhost', 27017)
-#         db = client['dou-scrapping-db']
-#         collection = db['vacancy-links-to-process']
-#
-#         query = {'link': vacancy_link, 'vacancy_title': vacancy_title, 'category': category}
-#
-#         collection.update_one(query, {"$set": {"is_scrapped": True}})
-#         print("vacancy status set to scrapped = True")
-#
-#
-# def load_categories_to_parse():
-#     client = MongoClient('localhost', 27017)
-#     db = client['dou-scrapping-db']
-#     collection = db['vacancy-links-to-process']
-#     return collection.distinct("category", {"is_scrapped": False})
-#
-#
-# def load_category_vacancies(category):
-#     client = MongoClient('localhost', 27017)
-#     db = client['dou-scrapping-db']
-#     collection = db['vacancy-links-to-process']
-#
-#     links_to_vacancies = []
-#     vacancy_titles = []
-#
-#     for item in collection.find({"category": category, "is_scrapped": False}):
-#         links_to_vacancies.append(item['link'])
-#         vacancy_titles.append(item['vacancy_title'])
-#
-#     return links_to_vacancies, vacancy_titles
-#
-#
-# def update_category_scrap_status(category):
-#     client = MongoClient('localhost', 27017)
-#     db = client['dou-scrapping-db']
-#     collection = db['category-links-to-process']
-#     query = {"category_name": category}
-#
-#     collection.update_one(query, {"$set": {"is_scrapped": True, "datetime_scrapped": datetime.utcnow()}})
-#     print("category status set to scrapped = True")
+        with open(self.temp_category_filename, "r") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                links_to_categories.append(row['link'])
+                category_names.append(row['category_name'])
+        return links_to_categories, category_names
+
+    def load_categories_to_parse(self):
+        """
+        Fetch categories that have more than 0 not-scrapped vacancies
+        """
+        categories_to_parse = []
+
+        with open(self.temp_vacancy_filename, "r") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                if row['is_scrapped'] == 'False' and row['category'] not in categories_to_parse:
+                    categories_to_parse.append(row['category'])
+        return categories_to_parse
+
+    def load_category_vacancies(self, category):
+        """
+        Fetch all not-scrapped vacancies links for the given category
+        """
+        links_to_vacancies = []
+        vacancy_titles = []
+
+        with open(self.temp_vacancy_filename, "r") as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                if row['is_scrapped'] == 'False' and row['category'] == category:
+                    links_to_vacancies.append(row['link'])
+                    vacancy_titles.append(row['vacancy_title'])
+        return links_to_vacancies, vacancy_titles
+
+    def update_vacancy_scrap_status(self, vacancy_link, vacancy_title, category):
+        temp_file = NamedTemporaryFile(mode='w', delete=False)
+
+        with open(self.temp_vacancy_filename, 'r') as csv_file, temp_file:
+            reader = csv.DictReader(csv_file, fieldnames=self.temp_vacancy_fields)
+            writer = csv.DictWriter(temp_file, fieldnames=self.temp_vacancy_fields)
+
+            for row in reader:
+                if row['link'] == vacancy_link and row['vacancy_title'] == vacancy_title and row['category'] == category:
+                    row['is_scrapped'] = 'True'
+                    row['scrapped_at'] = datetime.utcnow().strftime("%Y-%m-%d, %H:%M:%S")
+
+                row = {'link': row['link'], 'vacancy_title': row['vacancy_title'], 'category': row['category'],
+                       'is_scrapped': row['is_scrapped'], 'created_at': row['created_at'],
+                       'scrapped_at': row['scrapped_at']}
+
+                writer.writerow(row)
+
+        shutil.move(temp_file.name, self.temp_vacancy_filename)
+        print("vacancy status set to scrapped = True")
+
+    def update_category_scrap_status(self, category):
+        temp_file = NamedTemporaryFile(mode='w', delete=False)
+
+        with open(self.temp_category_filename, 'r') as csv_file, temp_file:
+            reader = csv.DictReader(csv_file, fieldnames=self.temp_category_fields)
+            writer = csv.DictWriter(temp_file, fieldnames=self.temp_category_fields)
+            for row in reader:
+                if row['category_name'] == category:
+                    row['is_scrapped'] = 'True'
+                    row['scrapped_at'] = datetime.utcnow().strftime("%Y-%m-%d, %H:%M:%S")
+                row = {'link': row['link'], 'category_name': row['category_name'], 'is_scrapped': row['is_scrapped'],
+                       'created_at': row['created_at'], 'scrapped_at': row['scrapped_at']}
+                writer.writerow(row)
+
+        shutil.move(temp_file.name, self.temp_category_filename)
+        print("category status set to scrapped = True")

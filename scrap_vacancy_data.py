@@ -11,7 +11,7 @@ def main(destination, temp_storage_type):
     if destination == 'mongo':
         destination_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
     else:
-        destination_adapter = AdapterCSV('jobs2.csv')
+        destination_adapter = AdapterCSV(filename='dou-jobs-data.csv')
 
     if temp_storage_type == 'mongo':
         temp_storage_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
@@ -23,11 +23,8 @@ def main(destination, temp_storage_type):
     print(categories_to_parse)
     print(len(categories_to_parse))
 
-    if categories_to_parse and destination == 'csv':
-        destination_adapter.create_csv_headline()
-
     for category in categories_to_parse:
-        print(f"Start scrapping category: {category}")
+        print(f'Start scrapping category: {category}')
         links_to_vacancies, vacancy_titles = temp_storage_adapter.load_category_vacancies(category=category)
         print(category, len(links_to_vacancies))
 
@@ -64,6 +61,6 @@ def scrap_vacancy_data(driver, destination_adapter, vacancy_title, vacancy_link,
 
 
 if __name__ == '__main__':
-    DESTINATION = 'mongo'
-    TEMP_STORAGE = 'mongo'
+    DESTINATION = 'csv'
+    TEMP_STORAGE = 'csv'
     main(destination=DESTINATION, temp_storage_type=TEMP_STORAGE)

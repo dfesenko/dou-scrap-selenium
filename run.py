@@ -21,7 +21,7 @@ def main(driver_path, destination, temporary_storage_type):
     if destination == 'mongo':
         destination_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
     else:
-        destination_adapter = AdapterCSV('jobs2.csv')
+        destination_adapter = AdapterCSV("dou-jobs-data.csv")
 
     if temporary_storage_type == 'mongo':
         temp_storage_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
@@ -30,9 +30,6 @@ def main(driver_path, destination, temporary_storage_type):
 
     links_to_categories, category_names = scrap_categories_links(driver=driver, storage_type=temporary_storage_type)
     count_scrapped = 0
-
-    if links_to_categories and destination == 'csv':
-        destination_adapter.create_csv_headline()
 
     for i in range(len(links_to_categories)):
         category = category_names[i]
