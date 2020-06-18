@@ -2,7 +2,7 @@ import time
 
 from selenium import webdriver
 
-from config import DRIVER_PATH
+from config import DRIVER_PATH, TEMP_STORAGE, DESTINATION
 from utils import AdapterCSV, AdapterMongo
 from scrap_categories_links import scrap_categories_links
 from scrap_vacancies_links import scrap_vacancies_links
@@ -57,6 +57,4 @@ def main(driver_path, destination, temporary_storage_type):
 
 
 if __name__ == '__main__':
-    DESTINATION = 'mongo'
-    TEMP_STORAGE = 'mongo'
     main(driver_path=DRIVER_PATH, destination=DESTINATION, temporary_storage_type=TEMP_STORAGE)
