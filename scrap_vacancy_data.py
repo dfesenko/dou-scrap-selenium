@@ -34,7 +34,7 @@ def main(driver_path, destination, temp_storage_type):
 
             temp_storage_adapter.update_vacancy_scrap_status(vacancy_link=links_to_vacancies[i],
                                                              vacancy_title=vacancy_titles[i], category=category)
-            print(i)
+            print(i+1)
 
         temp_storage_adapter.update_category_scrap_status(category=category)
 
