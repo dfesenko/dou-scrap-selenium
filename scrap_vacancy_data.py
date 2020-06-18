@@ -1,4 +1,5 @@
 import time
+from random import randint
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -41,7 +42,7 @@ def main(driver_path, destination, temp_storage_type):
 
 def scrap_vacancy_data(driver, destination_adapter, vacancy_title, vacancy_link, category):
     driver.get(vacancy_link)
-    time.sleep(3)
+    time.sleep(randint(1, 5))
 
     xpaths = {'company': "//div[@class='b-vacancy']/div[@class='b-compinfo']/div[@class='info']//a[1]",
               'location': "//div[@class='b-vacancy']//span[@class='place']",
