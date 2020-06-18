@@ -5,11 +5,11 @@ from selenium.common.exceptions import ElementNotInteractableException, NoSuchEl
     StaleElementReferenceException
 
 from utils import AdapterMongo, AdapterCSV
-from config import DRIVER_PATH
+from config import DRIVER_PATH, TEMP_STORAGE
 
 
-def main(storage_type):
-    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+def main(driver_path, storage_type):
+    driver = webdriver.Chrome(executable_path=driver_path)
 
     if storage_type == 'mongo':
         storage_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
@@ -55,5 +55,4 @@ def scrap_vacancies_links(driver, storage_adapter, link_to_category, category):
 
 
 if __name__ == '__main__':
-    TEMP_STORAGE = 'csv'
-    main(TEMP_STORAGE)
+    main(driver_path=DRIVER_PATH, storage_type=TEMP_STORAGE)

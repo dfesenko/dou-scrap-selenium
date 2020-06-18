@@ -4,10 +4,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
 from utils import AdapterMongo, AdapterCSV
-from config import DRIVER_PATH
+from config import DRIVER_PATH, TEMP_STORAGE, DESTINATION
 
 
-def main(destination, temp_storage_type):
+def main(driver_path, destination, temp_storage_type):
     if destination == 'mongo':
         destination_adapter = AdapterMongo('localhost', 27017, 'dou-scrapping-db')
     else:
@@ -18,7 +18,7 @@ def main(destination, temp_storage_type):
     else:
         temp_storage_adapter = AdapterCSV()
 
-    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+    driver = webdriver.Chrome(executable_path=driver_path)
     categories_to_parse = temp_storage_adapter.load_categories_to_parse()
     print(categories_to_parse)
     print(len(categories_to_parse))
@@ -61,6 +61,4 @@ def scrap_vacancy_data(driver, destination_adapter, vacancy_title, vacancy_link,
 
 
 if __name__ == '__main__':
-    DESTINATION = 'csv'
-    TEMP_STORAGE = 'csv'
-    main(destination=DESTINATION, temp_storage_type=TEMP_STORAGE)
+    main(driver_path=DRIVER_PATH, destination=DESTINATION, temp_storage_type=TEMP_STORAGE)

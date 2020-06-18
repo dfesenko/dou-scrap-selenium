@@ -2,11 +2,11 @@ import time
 from utils import AdapterMongo, AdapterCSV
 from selenium import webdriver
 
-from config import DRIVER_PATH
+from config import DRIVER_PATH, TEMP_STORAGE
 
 
-def main(storage_type):
-    driver = webdriver.Chrome(executable_path=DRIVER_PATH)
+def main(driver_path, storage_type):
+    driver = webdriver.Chrome(executable_path=driver_path)
     scrap_categories_links(driver=driver, storage_type=storage_type)
 
 
@@ -31,5 +31,4 @@ def scrap_categories_links(driver, storage_type):
 
 
 if __name__ == '__main__':
-    TEMP_STORAGE = 'csv'
-    main(TEMP_STORAGE)
+    main(driver_path=DRIVER_PATH, storage_type=TEMP_STORAGE)
